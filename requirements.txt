@@ -1,0 +1,2 @@
+colorama==0.4.4
+python_rapidjson==1.16

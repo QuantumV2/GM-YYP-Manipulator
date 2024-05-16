@@ -3,7 +3,7 @@ import glob
 from colorama import init as colorama_init
 from colorama import Fore
 from colorama import Style
-import json5
+import rapidjson
 
 colorama_init()
 
@@ -40,11 +40,15 @@ def recover_yyp():
         else:
             break
 
+    print("Please wait...")
     assets = recursive_search(project_folder, "yy")
 
     yyp = {
         "$GMProject":"",
         "%Name":f"{os.path.basename(project_folder)}",
+        "AudioGroups":[
+            {"$GMAudioGroup":"","%Name":"audiogroup_default","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
+        ],
         "configs":{
             "children":[],
             "name":"Default",
@@ -68,12 +72,19 @@ def recover_yyp():
         ],
         "IncludedFiles":[],
         "isEcma":False,
+        "LibraryEmitters":[],
+        "MetaData":{
+        "IDEVersion":"2024.4.0.137",
+        },
         "name":f"{os.path.basename(project_folder)}",
         "resources": [],
         "resourceType":"GMProject",
         "resourceVersion":"2.0",
         "templateType":None,
-        
+        "TextureGroups": [
+            {"$GMTextureGroup":"","%Name":"Default","autocrop":True,"border":2,"compressFormat":"bz2","customOptions":"","directory":"","groupParent":None,"isScaled":True,"loadType":"default","mipsToGenerate":0,"name":"Default","resourceType":"GMTextureGroup","resourceVersion":"2.0","targets":-1,},
+        ],
+
 
 
     }
@@ -92,8 +103,13 @@ def recover_yyp():
         )
     for asset in assets:
         with open(asset) as f:
-            data = json5.load(f)
-            if(data.get("parent", "NOTFOUND") is not "NOTFOUND"):
+            data = rapidjson.load(f, parse_mode=rapidjson.PM_COMMENTS | rapidjson.PM_TRAILING_COMMAS)
+            if(data["resourceType"] is "GMSequence"):
+                txrgroup = data["textureGroupId"]
+                txrgroupstruct = {"$GMTextureGroup":"","%Name":f"{txrgroup['name']}","autocrop":True,"border":2,"compressFormat":"bz2","customOptions":"","directory":"","groupParent":None,"isScaled":True,"loadType":"default","mipsToGenerate":0,"name":f"{txrgroup['name']}","resourceType":"GMTextureGroup","resourceVersion":"2.0","targets":-1,}
+                if txrgroupstruct not in yyp["TextureGroups"]:
+                    yyp["TextureGroups"].append(txrgroupstruct)
+            if("parent" in data):
                 folderpath = data["parent"]["path"]
                 folderstruct  = {"$GMFolder":"","%Name":f"{os.path.splitext(os.path.basename(folderpath))[0]}","folderPath":f"{folderpath}","name":f"{os.path.splitext(os.path.basename(folderpath))[0]}","resourceType":"GMFolder","resourceVersion":"2.0"}
                 if folderstruct not in yyp["Folders"]:
@@ -107,7 +123,8 @@ def recover_yyp():
             }
         )
     with open(f"{project_folder}\{os.path.basename(project_folder)}_recovered.yyp", "w") as outfile: 
-        json5.dump(yyp, outfile, indent=4)
+        rapidjson.dump(yyp, outfile, indent=4)
+    print("It's done!")
 
 def run_gymscript():
     pass
