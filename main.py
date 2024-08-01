@@ -104,7 +104,7 @@ def recover_yyp():
     for asset in assets:
         with open(asset) as f:
             data = rapidjson.load(f, parse_mode=rapidjson.PM_COMMENTS | rapidjson.PM_TRAILING_COMMAS)
-            if(data["resourceType"] is "GMSequence"):
+            if(data["resourceType"] == "GMSequence"):
                 txrgroup = data["textureGroupId"]
                 txrgroupstruct = {"$GMTextureGroup":"","%Name":f"{txrgroup['name']}","autocrop":True,"border":2,"compressFormat":"bz2","customOptions":"","directory":"","groupParent":None,"isScaled":True,"loadType":"default","mipsToGenerate":0,"name":f"{txrgroup['name']}","resourceType":"GMTextureGroup","resourceVersion":"2.0","targets":-1,}
                 if txrgroupstruct not in yyp["TextureGroups"]:
@@ -122,7 +122,7 @@ def recover_yyp():
                 }
             }
         )
-    with open(f"{project_folder}\{os.path.basename(project_folder)}_recovered.yyp", "w") as outfile: 
+    with open(f"{project_folder}\\{os.path.basename(project_folder)}_recovered.yyp", "w") as outfile: 
         rapidjson.dump(yyp, outfile, indent=4)
     print("It's done!")
 
